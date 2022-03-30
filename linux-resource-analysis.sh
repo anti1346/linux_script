@@ -113,13 +113,13 @@ apm_function() {
 	fi
 	echo -e "$ApacheVersion\t$PHPVersion\t$MySQLVersion"
 }
+# apm_function
 
 mysql_function() {
 	MySQLVer=`which mysqladmin`
 	echo -n -e "${ITALICRED}$MySQLVer -V | cut -d' ' -f6 | cut -d',' -f1${ENDCOLOR}"
 }
-
-# apm_function
+# mysql_function
 
 ### Main ###
 LocalIP=`ip -4 a l $(ip route | head -1 | awk '/default/ {print $5}') | awk '/inet/ {print $2}' | awk -F'/' {'print $1'} | egrep -v 127.0.0.1 | tee ${outputfile}`
