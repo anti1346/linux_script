@@ -12,7 +12,7 @@ ENDCOLOR="\e[0m"
 ### Function ###
 hw1_function() {
 	Verdor=$(dmidecode -t system | egrep "Manufacturer" | awk -F'Manufacturer:' {'print $2'} | sed -e 's/^[ ]*//g' | sed -e 's/[ ]*$//g' | awk {'print $1'} | cut -d',' -f1)
-	if [[ "$Verdor" == HP ]]; then
+	if [[ "$Verdor" == HP || "$Verdor" == HPE ]]; then
 		VENDOR="HP"
 		ProductName=$(dmidecode -t system | egrep "Product Name" | awk -F'Product Name: ProLiant' {'print $2'} | sed -e 's/^[ ]*//g' | sed -e 's/[ ]*$//g')
 		Platform="Linux"
@@ -25,7 +25,10 @@ hw1_function() {
 		ProductName="EverRun"
 		Platform="Linux"
 	else
-		echo "dmidecode -t system | egrep "Manufacturer""
+		echo """dmidecode -t system | egrep 'Manufacturer'
+dmidecode -t system | egrep 'Product Name'
+cat /etc/redhat-release"""
+	echo -n -e "${ENDCOLOR}"
 	fi
 	echo -e "$VENDOR\t$ProductName\t$Platform"
 }
@@ -51,7 +54,7 @@ os1_function() {
 		DiskUsage=$(fdisk -l | egrep -v 'label|identifier|loop|mapper' | egrep 'Disk' | awk '{sum+=$3} END {print sum " GB"}')
 		DiskType=SAS
 		NICCount=$(ip addr | egrep 'eno|eth|ens|enp' | egrep -v 'veth|link|lo|docker|virbr|DOWN' | egrep 'state UP' | wc -l)
-	elif [[ "$OSVersion" == 6 || "$OSVersion" == 4 ]]; then
+	elif [[ "$OSVersion" == 6 || "$OSVersion" == 5 ]]; then
 		OSName=$(cat /etc/redhat-release | awk {'print $1, $3'} | cut -d'.' -f1-2)
 		OSBIT=$(getconf LONG_BIT)
 		CPUcores=$(grep -c "model name" /proc/cpuinfo)
@@ -61,9 +64,7 @@ os1_function() {
 		NICCount=$(ip addr | egrep 'eno|eth|ens|enp' | egrep -v 'veth|link|lo|docker|virbr|DOWN' | egrep 'UP' | wc -l)
 	else
 	echo -e "${ITALICRED}"
-	echo """dmidecode -t system | egrep 'Manufacturer'
-dmidecode -t system | egrep 'Product Name'
-cat /etc/redhat-release
+	echo """cat /etc/redhat-release
 getconf LONG_BIT
 grep -c processor /proc/cpuinfo
 
@@ -85,27 +86,27 @@ utilization_function() {
 # utilization_function
 
 apm_function() {
-	if [ -f /usr/local/apache2/bin/apachectl ]; then
+	if [[ -f /usr/local/apache2/bin/apachectl ]]; then
 		ApacheVersion=`/usr/local/apache2/bin/apachectl -v | head -n1 | cut -d'/' -f2 | cut -d' ' -f1`
-	elif [ -f `which httpd` ]; then
+	elif [[ -f `which httpd 2>/dev/null` ]]; then
 		HTTPD=`which httpd`
 		ApacheVersion=`$HTTPD -v | head -n1 | cut -d'/' -f2 | cut -d' ' -f1`
 	else
 		ApacheVersion="No Apache!!!"
 	fi
 
-	if [ -f /usr/local/php/bin/php ]; then
+	if [[ -f /usr/local/php/bin/php ]]; then
 		PHPVersion=`/usr/local/php/bin/php -v | head -n1 | cut -d' ' -f2`
-	elif [ -f `which php` ]; then
+	elif [[ -f `which php 2>/dev/null` ]]; then
 		PHP=`which php`
 		PHPVersion=`$PHP -v | head -n1 | cut -d' ' -f2`
 	else
 		PHPVersion="No PHP!!!"
 	fi
 
-	if [ -f /usr/local/mysql/bin/mysqladmin ]; then
+	if [[ -f /usr/local/mysql/bin/mysqladmin ]]; then
 		MySQLVersion=`/usr/local/mysql/bin/mysqladmin -V | cut -d' ' -f6 | cut -d',' -f1`
-	elif [ -f `which mysqladmin` ]; then
+	elif [[ -f `which mysqladmin 2>/dev/null` ]]; then
 		MySQL=`which mysqladmin`
 		MySQLVersion=`$MySQL -V | cut -d' ' -f6 | cut -d',' -f1`
 	else
@@ -129,4 +130,4 @@ echo -e "\n${BOLDGREEN}`hw1_function`\t`os1_function`\t`utilization_function`${E
 
 echo -e "\n${BOLDGREEN}`apm_function`${ENDCOLOR}"
 
-echo -e "\n${ITALICRED}`mysql_function`${ENDCOLOR}\n"
+# echo -e "\n${ITALICRED}`mysql_function`${ENDCOLOR}\n"
